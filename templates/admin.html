@@ -143,6 +143,7 @@ body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:
     <div class="db-path" id="db-path">Loading...</div>
     <div class="db-dates" id="db-dates">—</div>
     <button class="ref-btn" onclick="load()">↺ Refresh</button>
+<a href="/api/export/all" class="ref-btn" download style="text-decoration:none">↓ Export all (.csv)</a>
   </div>
 
   <!-- KPIs -->
@@ -302,9 +303,11 @@ function renderOperators(ops){
         <div class="trend-label">ACCURACY TREND — LAST 4 WEEKS</div>
         <div class="trend-bars">${bars}</div>
       ` : ''}
-      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">
-        First pick: ${op.first_pick?op.first_pick.substring(0,10):'—'} &nbsp;·&nbsp;
-        Last pick:  ${op.last_pick ?op.last_pick.substring(0,10):'—'}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted)">
+          First: ${op.first_pick?op.first_pick.substring(0,10):'—'} · Last: ${op.last_pick?op.last_pick.substring(0,10):'—'}
+        </div>
+        <a href="/api/export/operator/${op.id}" class="ref-btn" download style="text-decoration:none">↓ CSV</a>
       </div>
     </div>`;
   }).join('');
