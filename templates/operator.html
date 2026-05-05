@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SynTrack — Admin · Database View</title>
+<title>SynTrack — Operator Portal</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap');
 :root{
@@ -14,360 +14,492 @@
   --mono:'IBM Plex Mono',monospace;--sans:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{font-size:13px}
 body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:100vh}
 
-/* ── TOP BAR ── */
-.topbar{height:50px;background:var(--bg2);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
-  position:sticky;top:0;z-index:50}
+/* topbar */
+.top{height:50px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:50}
 .logo{font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:2px;color:var(--yellow)}
 .logo span{color:var(--white);font-weight:300}
-.admin-tag{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
-  border-radius:4px;padding:3px 10px;font-family:var(--mono);font-size:9px;
-  color:var(--red);font-weight:600;letter-spacing:1px}
-.nav-links{display:flex;gap:12px}
-.nav-links a{font-family:var(--mono);font-size:9px;color:var(--muted);
-  text-decoration:none;padding:3px 8px;border-radius:4px;border:1px solid var(--border)}
-.nav-links a:hover{color:var(--yellow);border-color:var(--yellow)}
+.portal-tag{background:rgba(73,158,255,.15);border:1px solid rgba(73,158,255,.3);
+  border-radius:4px;padding:3px 10px;font-family:var(--mono);font-size:9px;color:var(--blue);font-weight:600;letter-spacing:1px}
+.btn{border:none;border-radius:5px;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:11px;padding:6px 14px;transition:all .2s}
+.btn-y{background:var(--yellow);color:var(--bg)}.btn-y:hover{filter:brightness(.9)}
+.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-g:hover{border-color:var(--red);color:var(--red)}
+.time{font-family:var(--mono);font-size:10px;color:var(--muted)}
 
-/* ── LAYOUT ── */
-.wrap{padding:16px 24px;display:grid;gap:14px;max-width:1200px;margin:0 auto}
+/* main layout */
+.wrap{padding:16px 20px;display:grid;gap:14px;max-width:900px;margin:0 auto}
 
-/* ── DB INFO BANNER ── */
-.db-banner{background:var(--card);border:1px solid var(--border);border-radius:10px;
-  padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.db-path{font-family:var(--mono);font-size:10px;color:var(--teal)}
-.db-badge{font-family:var(--mono);font-size:9px;background:rgba(34,197,94,.1);
-  border:1px solid rgba(34,197,94,.25);border-radius:4px;padding:3px 8px;color:var(--green)}
-.db-dates{font-family:var(--mono);font-size:9px;color:var(--muted)}
+/* setup card */
+.setup-card{background:var(--card);border:1px solid var(--yellow);border-radius:10px;padding:20px}
+.sc-title{font-family:var(--cond);font-size:20px;font-weight:800;color:var(--yellow);margin-bottom:14px}
+.sc-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.sel-wrap{display:flex;flex-direction:column;gap:4px}
+.sel-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+select{background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--white);
+  font-family:var(--mono);font-size:11px;padding:7px 12px;cursor:pointer;outline:none;min-width:200px}
+select:focus{border-color:var(--yellow)}
+select option{background:var(--bg2)}
 
-/* ── KPI ROW ── */
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
-.kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:12px 14px;position:relative;overflow:hidden}
-.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--kc,var(--border))}
-.kpi-lbl{font-family:var(--mono);font-size:8px;font-weight:600;color:var(--muted);
-  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
-.kpi-val{font-family:var(--cond);font-size:28px;font-weight:800;color:var(--kc,var(--white));line-height:1}
-.kpi-sub{font-size:9px;color:var(--muted);margin-top:3px}
-
-/* ── PANEL ── */
-.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-.ph{padding:10px 16px;border-bottom:1px solid var(--border);
+/* assembly console */
+.asm-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:none}
+.asm-card.active{display:block;border-color:var(--teal)}
+.asm-header{background:var(--bg3);padding:14px 18px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between}
-.ph-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);
-  letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
-.ph-dot{width:6px;height:6px;border-radius:50%;background:var(--ac,var(--yellow))}
-.pb{padding:14px;overflow-x:auto}
+.asm-wo{font-family:var(--cond);font-size:15px;font-weight:800;color:var(--yellow)}
+.asm-machine{font-family:var(--mono);font-size:9px;color:var(--muted)}
+.asm-op{font-size:12px;font-weight:600;color:var(--teal)}
 
-/* ── OPERATOR CARDS ── */
-.op-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px}
-.op-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px}
-.op-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.op-name{font-weight:700;font-size:13px}
-.op-role{font-family:var(--mono);font-size:8px;color:var(--muted)}
-.acc-badge{font-family:var(--cond);font-size:18px;font-weight:800}
-.op-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
-.met{background:var(--bg2);border-radius:4px;padding:6px;text-align:center}
-.mv{font-family:var(--cond);font-size:16px;font-weight:700}
-.ml{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.8px;margin-top:1px}
+/* progress bar */
+.prog-wrap{padding:12px 18px;border-bottom:1px solid var(--border)}
+.prog-steps{display:flex;gap:5px;margin-bottom:8px}
+.ps{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:10px;font-weight:700;border:1px solid var(--dim);
+  transition:all .3s;color:var(--dim)}
+.ps.done{background:rgba(34,197,94,.18);border-color:var(--green);color:var(--green)}
+.ps.cur{background:rgba(245,196,0,.18);border-color:var(--yellow);color:var(--yellow);
+  animation:cur-pulse 1.2s ease-in-out infinite}
+@keyframes cur-pulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(245,196,0,.35)}}
+.prog-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--yellow),var(--teal));
+  transition:width .5s ease;width:0%}
 
-/* weekly trend bars */
-.trend-label{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:5px;letter-spacing:.8px}
-.trend-bars{display:flex;gap:4px;align-items:flex-end;height:36px}
-.tb{flex:1;border-radius:2px 2px 0 0;min-height:3px;position:relative;cursor:default}
-.tb .tip{position:absolute;bottom:105%;left:50%;transform:translateX(-50%);
-  background:var(--bg2);border:1px solid var(--border);border-radius:3px;
-  padding:2px 6px;font-family:var(--mono);font-size:7px;white-space:nowrap;
-  opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
-.tb:hover .tip{opacity:1}
+/* step prompt */
+.step-main{padding:18px}
+.step-info{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.step-num{background:var(--yellow);color:var(--bg);border-radius:5px;
+  padding:4px 12px;font-family:var(--cond);font-size:15px;font-weight:800}
+.step-part{font-size:16px;font-weight:700}
+.step-sub{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.tray-chip{display:inline-block;background:rgba(0,211,170,.1);border:1px solid var(--teal);
+  border-radius:5px;padding:3px 12px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal)}
 
-/* ── TABLE ── */
-.dt{width:100%;border-collapse:collapse;font-size:11px}
-.dt th{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;
-  text-transform:uppercase;padding:6px 10px;text-align:left;
-  border-bottom:1px solid var(--border);white-space:nowrap}
-.dt td{padding:7px 10px;border-bottom:1px solid rgba(26,58,85,.4);vertical-align:middle}
-.dt tr:hover td{background:rgba(73,158,255,.04)}
-.badge{display:inline-block;border-radius:3px;padding:2px 6px;
-  font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
-.bg{background:rgba(34,197,94,.15);color:var(--green)}
-.br{background:rgba(239,68,68,.15);color:var(--red)}
-.by{background:rgba(245,196,0,.15);color:var(--yellow)}
-.tc{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--teal);
-  background:rgba(0,211,170,.1);border-radius:3px;padding:1px 5px}
+/* key prompt area */
+.key-area{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.key-section{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px}
+.ks-title{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:10px}
+.correct-key-big{width:64px;height:64px;border-radius:10px;border:2px solid var(--yellow);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--cond);font-size:36px;font-weight:800;color:var(--yellow);
+  background:rgba(245,196,0,.08);transition:all .15s;cursor:pointer;user-select:none}
+.correct-key-big.pressed{background:var(--yellow);color:var(--bg);transform:scale(.9)}
+.key-hint{font-size:11px;color:var(--muted);margin-top:8px}
+.key-hint strong{color:var(--yellow)}
+.wrong-keys-grid{display:flex;gap:6px;flex-wrap:wrap}
+.wk{width:38px;height:38px;border-radius:6px;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:13px;color:var(--dim);cursor:pointer;transition:all .12s;user-select:none}
+.wk:hover{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08)}
+.wk.flash-wrong{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.2);
+  animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 
-/* ── DAILY CHART ── */
-.daily-chart{display:flex;gap:3px;align-items:flex-end;height:80px;padding:6px 0}
-.dc-bar{flex:1;border-radius:2px 2px 0 0;min-height:2px;cursor:pointer;position:relative;transition:opacity .2s}
-.dc-bar:hover{opacity:.7}
-.dc-bar .tip{position:absolute;bottom:105%;left:50%;transform:translateX(-50%);
-  background:var(--bg2);border:1px solid var(--border);border-radius:3px;
-  padding:2px 6px;font-family:var(--mono);font-size:7px;white-space:nowrap;
-  opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
-.dc-bar:hover .tip{opacity:1}
+/* session stats sidebar */
+.sess-stats{background:var(--bg3);border:1px solid var(--border);border-radius:8px;
+  padding:14px;display:grid;gap:10px}
+.ss-item{display:flex;flex-direction:column;gap:2px}
+.ss-lbl{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.ss-val{font-family:var(--cond);font-size:22px;font-weight:800}
 
-/* ── TWO COL ── */
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* wrong tray flash banner */
+.wrong-banner{position:fixed;top:58px;left:50%;transform:translateX(-50%);
+  background:rgba(239,68,68,.96);border:1px solid var(--red);border-radius:8px;
+  padding:10px 20px;display:flex;align-items:center;gap:10px;z-index:200;
+  min-width:360px;backdrop-filter:blur(6px);animation:bni .3s;box-shadow:0 4px 20px rgba(239,68,68,.4)}
+@keyframes bni{from{top:50px;opacity:0}to{top:58px;opacity:1}}
+.wb-close{margin-left:auto;background:transparent;border:none;color:white;cursor:pointer;font-size:13px}
 
-/* ── REFRESH BUTTON ── */
-.ref-btn{background:transparent;border:1px solid var(--border);border-radius:4px;
-  color:var(--muted);font-family:var(--mono);font-size:9px;
-  padding:3px 10px;cursor:pointer;transition:all .2s}
-.ref-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+/* complete overlay */
+.comp-ov{position:fixed;inset:0;z-index:300;background:rgba(2,13,24,.92);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;animation:fdi .4s}
+@keyframes fdi{from{opacity:0}to{opacity:1}}
+.comp-card{background:var(--card);border:1px solid var(--green);border-radius:14px;
+  padding:44px;text-align:center;max-width:420px;box-shadow:0 0 40px rgba(34,197,94,.2);
+  animation:sci .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes sci{from{transform:scale(.85)}to{transform:scale(1)}}
+.comp-icon{font-size:56px;margin-bottom:10px}
+.comp-title{font-family:var(--cond);font-size:36px;font-weight:800;color:var(--green);margin-bottom:6px}
+.comp-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.comp-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px}
+.cr{background:var(--bg3);border-radius:7px;padding:10px}
+.crv{font-family:var(--cond);font-size:22px;font-weight:800;color:var(--yellow)}
+.crl{font-family:var(--mono);font-size:7px;color:var(--muted);margin-top:2px}
 
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+/* recent picks mini log */
+.mini-log{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:180px;overflow-y:auto}
+.ml-title{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.ml-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid rgba(26,58,85,.4);font-size:10px}
+.ml-row:last-child{border:none}
+.ml-step{font-family:var(--mono);color:var(--yellow);font-weight:700;min-width:24px}
+.ml-tray{font-family:var(--mono);background:rgba(0,211,170,.1);border-radius:3px;
+  padding:1px 5px;color:var(--teal);font-size:9px}
+.ml-dur{font-family:var(--mono);font-size:9px;margin-left:auto}
+.ml-ok{min-width:28px;text-align:right;font-family:var(--mono);font-size:9px}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 
-<header class="topbar">
+<header class="top">
   <div style="display:flex;align-items:center;gap:12px">
     <div class="logo">SYN<span>TRACK</span></div>
-    <div class="admin-tag">ADMIN · DATABASE VIEW</div>
+    <div class="portal-tag">OPERATOR PORTAL</div>
   </div>
-  <div class="nav-links">
-    <a href="/">Operator Portal</a>
-    <a href="/super">Supervisor Portal</a>
-    <a href="/api/db_info" target="_blank">Raw JSON</a>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="time" id="clock"></div>
+    <a href="/super" target="_blank" style="font-family:var(--mono);font-size:9px;color:var(--muted);text-decoration:none">
+      Open Supervisor Portal ↗
+    </a>
+    <button class="btn btn-g" onclick="resetDemo()">↺ Reset</button>
   </div>
 </header>
 
 <div class="wrap">
 
-  <!-- DB INFO BANNER -->
-  <div class="db-banner">
-    <div class="db-badge">● LIVE DATABASE</div>
-    <div class="db-path" id="db-path">Loading...</div>
-    <div class="db-dates" id="db-dates">—</div>
-    <button class="ref-btn" onclick="load()">↺ Refresh</button>
-  </div>
-
-  <!-- KPIs -->
-  <div class="kpi-row">
-    <div class="kpi" style="--kc:var(--yellow)">
-      <div class="kpi-lbl">Total Picks</div>
-      <div class="kpi-val" id="k-picks">—</div>
-      <div class="kpi-sub">all time</div>
-    </div>
-    <div class="kpi" style="--kc:var(--green)">
-      <div class="kpi-lbl">Overall Accuracy</div>
-      <div class="kpi-val" id="k-acc">—</div>
-      <div class="kpi-sub">first-time correct</div>
-    </div>
-    <div class="kpi" style="--kc:var(--red)">
-      <div class="kpi-lbl">Wrong Attempts</div>
-      <div class="kpi-val" id="k-wrong">—</div>
-      <div class="kpi-sub">tray mismatches</div>
-    </div>
-    <div class="kpi" style="--kc:var(--teal)">
-      <div class="kpi-lbl">Avg Pick Time</div>
-      <div class="kpi-val" id="k-ms">—</div>
-      <div class="kpi-sub">ms per step</div>
-    </div>
-    <div class="kpi" style="--kc:var(--blue)">
-      <div class="kpi-lbl">Active Days</div>
-      <div class="kpi-val" id="k-days">—</div>
-      <div class="kpi-sub">sessions recorded</div>
-    </div>
-    <div class="kpi" style="--kc:var(--orange)">
-      <div class="kpi-lbl">Operators</div>
-      <div class="kpi-val">4</div>
-      <div class="kpi-sub">on record</div>
-    </div>
-  </div>
-
-  <!-- OPERATOR CARDS -->
-  <div class="panel">
-    <div class="ph">
-      <div class="ph-title"><div class="ph-dot" style="--ac:var(--blue)"></div>OPERATOR INTELLIGENCE — FULL HISTORY</div>
-      <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">all time · all sessions</span>
-    </div>
-    <div class="op-grid" id="op-grid">
-      <div style="color:var(--dim);font-family:var(--mono);font-size:9px;padding:14px">Loading...</div>
-    </div>
-  </div>
-
-  <!-- DAILY CHART + WO BREAKDOWN -->
-  <div class="two-col">
-    <div class="panel">
-      <div class="ph">
-        <div class="ph-title"><div class="ph-dot" style="--ac:var(--teal)"></div>DAILY PICK ACTIVITY</div>
-        <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">last 30 days</span>
+  <!-- SETUP -->
+  <div class="setup-card" id="setup-card">
+    <div class="sc-title">Start New Assembly Session</div>
+    <div class="sc-row">
+      <div class="sel-wrap">
+        <div class="sel-lbl">Work Order</div>
+        <select id="wo-sel">
+          <option value="">— Select —</option>
+          {% for wo_id, wo in assemblies.items() %}
+          <option value="{{ wo_id }}">{{ wo_id }} · {{ wo.name }}</option>
+          {% endfor %}
+        </select>
       </div>
-      <div style="padding:12px">
-        <div class="daily-chart" id="daily-chart"></div>
-        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:6px">
-          Each bar = one day · height = pick count · hover for detail
+      <div class="sel-wrap">
+        <div class="sel-lbl">Operator</div>
+        <select id="op-sel">
+          {% for op in operators %}
+          <option value="{{ op.id }}">{{ op.name }}  ({{ op.id }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-y" onclick="startSession()">▶ Start Assembly</button>
+    </div>
+    <div style="margin-top:12px;font-family:var(--mono);font-size:9px;color:var(--muted)">
+      After pressing Start: press the <strong style="color:var(--yellow)">correct letter key</strong> to confirm each tray pick · Press a <strong style="color:var(--red)">wrong key</strong> to simulate an error
+    </div>
+  </div>
+
+  <!-- ASSEMBLY CONSOLE -->
+  <div class="asm-card" id="asm-card">
+    <div class="asm-header">
+      <div>
+        <div class="asm-wo" id="asm-wo-name">—</div>
+        <div class="asm-machine" id="asm-machine">—</div>
+      </div>
+      <div class="asm-op" id="asm-op">—</div>
+    </div>
+
+    <div class="prog-wrap">
+      <div class="prog-steps" id="prog-steps"></div>
+      <div class="prog-bar-wrap"><div class="prog-bar-fill" id="prog-fill"></div></div>
+    </div>
+
+    <div class="step-main">
+      <div style="display:grid;grid-template-columns:1fr auto;gap:14px">
+        <div>
+          <!-- Step info -->
+          <div class="step-info" id="step-info">
+            <div class="step-num" id="sp-num">STEP 1</div>
+            <div>
+              <div class="step-part" id="sp-part">—</div>
+              <div class="step-sub">
+                Tray: <span class="tray-chip" id="sp-tray">—</span>&nbsp;&nbsp;
+                Qty: <strong id="sp-qty" style="color:var(--yellow)">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key prompt -->
+          <div class="key-area">
+            <div class="key-section">
+              <div class="ks-title">Press this key to confirm correct tray pick</div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="correct-key-big" id="correct-key" onclick="pressKey(correctKey)">?</div>
+                <div class="key-hint">Keyboard shortcut:<br><strong id="key-label">?</strong></div>
+              </div>
+            </div>
+            <div class="key-section">
+              <div class="ks-title">Click any of these to simulate a wrong tray attempt</div>
+              <div class="wrong-keys-grid" id="wrong-keys"></div>
+              <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:6px">
+                or press any other letter key on your keyboard
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Session stats sidebar -->
+        <div class="sess-stats" style="min-width:140px">
+          <div class="ss-item">
+            <div class="ss-lbl">Steps Done</div>
+            <div class="ss-val txt-y" id="ss-steps" style="color:var(--yellow)">0</div>
+          </div>
+          <div class="ss-item">
+            <div class="ss-lbl">Accuracy</div>
+            <div class="ss-val" id="ss-acc" style="color:var(--green)">100%</div>
+          </div>
+          <div class="ss-item">
+            <div class="ss-lbl">Wrong Attempts</div>
+            <div class="ss-val" id="ss-wa" style="color:var(--red)">0</div>
+          </div>
+          <div class="ss-item">
+            <div class="ss-lbl">Avg Speed</div>
+            <div class="ss-val" id="ss-spd" style="color:var(--teal);font-size:16px">—</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="panel">
-      <div class="ph">
-        <div class="ph-title"><div class="ph-dot" style="--ac:var(--yellow)"></div>WORK ORDER BREAKDOWN</div>
+      <!-- Mini log of recent picks -->
+      <div class="mini-log" style="margin-top:12px">
+        <div class="ml-title">Completed Steps This Session</div>
+        <div id="mini-log-body" style="color:var(--dim);font-family:var(--mono);font-size:9px">
+          No steps yet…
+        </div>
       </div>
-      <div class="pb" style="padding:0">
-        <table class="dt">
-          <thead><tr><th>Assembly</th><th>Picks</th><th>Errors</th><th>Avg Speed</th><th>Operators</th></tr></thead>
-          <tbody id="wo-table"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- RECENT PICKS LOG -->
-  <div class="panel">
-    <div class="ph">
-      <div class="ph-title"><div class="ph-dot" style="--ac:var(--teal)"></div>RECENT PICK LOG — ALL TIME</div>
-      <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">last 20 events across all sessions</span>
-    </div>
-    <div class="pb" style="padding:0;max-height:320px;overflow-y:auto">
-      <table class="dt">
-        <thead><tr><th>TIMESTAMP</th><th>OPERATOR</th><th>WO</th><th>STEP</th><th>TRAY</th><th>PART</th><th>WRONG ATT.</th><th>DURATION</th><th>STATUS</th></tr></thead>
-        <tbody id="picks-table"></tbody>
-      </table>
     </div>
   </div>
 
 </div>
 
 <script>
-const OPERATORS = {{ operators | tojson }};
-const ASSEMBLIES = {{ assemblies | tojson }};
+const assemblies = {{ assemblies | tojson }};
+const operators  = {{ operators  | tojson }};
 
-async function load(){
-  try{
-    const r = await fetch('/api/admin/stats');
-    const d = await r.json();
-    renderKPIs(d.totals);
-    renderDB(d.totals);
-    renderOperators(d.operators);
-    renderDaily(d.daily);
-    renderWO(d.work_orders);
-    renderPicks(d.recent_picks);
-  }catch(e){ console.error(e); }
+let session = {
+  active:false, woId:null, opId:null, opName:null,
+  steps:[], idx:0, stepsDone:0,
+  wrongAttempts:0,    // current step wrong attempts
+  totalWA:0,          // session total wrong attempts
+  stepStartMs:0,
+  durations:[],       // ms per completed step
+};
+let correctKey = '';
+
+// Clock
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('en-IN',{hour12:false});
+}
+setInterval(tick,1000); tick();
+
+// Start
+async function startSession(){
+  const woId=document.getElementById('wo-sel').value;
+  const opId=document.getElementById('op-sel').value;
+  if(!woId){alert('Select a work order first');return;}
+  const r=await fetch('/api/activate_wo',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({wo_id:woId,op_id:opId})});
+  const d=await r.json();
+  if(d.error){alert(d.error);return;}
+  const wo=assemblies[woId];
+  const op=operators.find(o=>o.id===opId)||{name:opId};
+  session={active:true,woId,opId,opName:op.name,steps:wo.steps,idx:0,
+    stepsDone:0,wrongAttempts:0,totalWA:0,stepStartMs:Date.now(),durations:[]};
+  document.getElementById('setup-card').style.display='none';
+  const ac=document.getElementById('asm-card');
+  ac.style.display='block'; ac.classList.add('active');
+  document.getElementById('asm-wo-name').textContent=`${woId} · ${wo.name}`;
+  document.getElementById('asm-machine').textContent=wo.machine;
+  document.getElementById('asm-op').textContent=op.name;
+  document.getElementById('mini-log-body').innerHTML='No steps yet…';
+  showStep(0);
 }
 
-function renderKPIs(t){
-  document.getElementById('k-picks').textContent = t.picks;
-  document.getElementById('k-acc').textContent   = t.picks>0 ? t.accuracy+'%' : '—';
-  document.getElementById('k-wrong').textContent = t.wrong_attempts;
-  document.getElementById('k-ms').textContent    = t.avg_ms || '—';
-  document.getElementById('k-days').textContent  = t.sessions;
+function showStep(idx){
+  if(idx>=session.steps.length)return;
+  const s=session.steps[idx];
+  session.stepStartMs=Date.now();
+  session.wrongAttempts=0;
+  correctKey=s.tray_key.toUpperCase();
+
+  document.getElementById('sp-num').textContent  =`STEP ${s.step}`;
+  document.getElementById('sp-part').textContent =s.part;
+  document.getElementById('sp-tray').textContent =s.tray;
+  document.getElementById('sp-qty').textContent  =`×${s.qty}`;
+  document.getElementById('key-label').textContent=`"${correctKey}" key`;
+  const ck=document.getElementById('correct-key');
+  ck.textContent=correctKey; ck.className='correct-key-big';
+
+  // Wrong keys
+  const wrongSet='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(k=>k!==correctKey).slice(0,8);
+  document.getElementById('wrong-keys').innerHTML=wrongSet.map(k=>
+    `<div class="wk" id="wk-${k}" onclick="pressKey('${k}')">${k}</div>`).join('');
+
+  buildProgress();
 }
 
-function renderDB(t){
-  document.getElementById('db-path').textContent = 'DB: ' + t.db_path;
-  const from = t.data_from ? t.data_from.substring(0,10) : '—';
-  const to   = t.data_to   ? t.data_to.substring(0,10)   : '—';
-  document.getElementById('db-dates').textContent = `Data range: ${from} → ${to}`;
-}
-
-function renderOperators(ops){
-  const grid = document.getElementById('op-grid');
-  grid.innerHTML = ops.map(op => {
-    const ac = op.accuracy>=92?'var(--green)':op.accuracy>=78?'var(--yellow)':'var(--red)';
-    const weekly = op.weekly || [];
-    const maxAcc = 100;
-    const bars = weekly.slice().reverse().map(w => {
-      const h = Math.max(3, w.accuracy);
-      const c = w.accuracy>=90?'var(--green)':w.accuracy>=75?'var(--yellow)':'var(--red)';
-      return `<div class="tb" style="height:${h*0.36}px;background:${c}">
-        <div class="tip">Wk${w.week}: ${w.accuracy}% · ${w.picks} picks · ${w.avg_ms}ms</div>
-      </div>`;
-    }).join('');
-
-    return `
-    <div class="op-card">
-      <div class="op-top">
-        <div>
-          <div class="op-name">${op.name}</div>
-          <div class="op-role">${op.role} · ${op.shift} · ${op.id}</div>
-        </div>
-        <div>
-          <div class="acc-badge" style="color:${ac}">${op.accuracy}%</div>
-          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:right">accuracy</div>
-        </div>
-      </div>
-      <div class="op-mets">
-        <div class="met"><div class="mv" style="color:var(--yellow)">${op.picks}</div><div class="ml">PICKS</div></div>
-        <div class="met"><div class="mv" style="color:${op.wrong_att>0?'var(--red)':'var(--green)'}">${op.wrong_att}</div><div class="ml">ERRORS</div></div>
-        <div class="met"><div class="mv" style="color:var(--teal)">${(op.avg_ms/1000).toFixed(1)}s</div><div class="ml">AVG SPEED</div></div>
-        <div class="met"><div class="mv" style="color:var(--blue)">${op.active_days}</div><div class="ml">DAYS</div></div>
-      </div>
-      ${bars ? `
-        <div class="trend-label">ACCURACY TREND — LAST 4 WEEKS</div>
-        <div class="trend-bars">${bars}</div>
-      ` : ''}
-      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">
-        First pick: ${op.first_pick?op.first_pick.substring(0,10):'—'} &nbsp;·&nbsp;
-        Last pick:  ${op.last_pick ?op.last_pick.substring(0,10):'—'}
-      </div>
-    </div>`;
+function buildProgress(){
+  const row=document.getElementById('prog-steps');
+  const pct=Math.round(session.stepsDone/session.steps.length*100);
+  row.innerHTML=session.steps.map((s,i)=>{
+    const cls=i<session.idx?'done':i===session.idx?'cur':'';
+    return `<div class="ps ${cls}">${i<session.idx?'✓':s.step}</div>`;
   }).join('');
+  document.getElementById('prog-fill').style.width=pct+'%';
 }
 
-function renderDaily(daily){
-  const chart = document.getElementById('daily-chart');
-  if(!daily||!daily.length){chart.innerHTML='<div style="color:var(--dim);font-size:9px;font-family:var(--mono)">No data</div>';return;}
-  const maxP = Math.max(...daily.map(d=>d.picks),1);
-  chart.innerHTML = [...daily].reverse().map(d=>{
-    const h = Math.max(2,(d.picks/maxP)*75);
-    const c = d.errors>0?'var(--yellow)':'var(--teal)';
-    return `<div class="dc-bar" style="height:${h}px;background:${c}">
-      <div class="tip">${d.d} · ${d.picks} picks · ${d.errors} err · ${d.ops} ops</div>
-    </div>`;
-  }).join('');
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(!session.active)return;
+  if(['SELECT','INPUT'].includes(e.target.tagName))return;
+  const k=e.key.toUpperCase();
+  if(k.length===1&&k.match(/[A-Z]/)) pressKey(k);
+});
+
+async function pressKey(k){
+  if(!session.active||session.idx>=session.steps.length)return;
+  const s=session.steps[session.idx];
+  const ck=document.getElementById('correct-key');
+
+  if(k===correctKey){
+    // CORRECT
+    ck.classList.add('pressed');
+    const dur=Date.now()-session.stepStartMs;
+    setTimeout(()=>completeStep(s,dur),160);
+  } else {
+    // WRONG — log it immediately, supervisor sees right away
+    session.wrongAttempts++;
+    session.totalWA++;
+    document.getElementById('ss-wa').textContent=session.totalWA;
+    updateAccDisplay();
+
+    // Animate wrong key
+    const wke=document.getElementById(`wk-${k}`);
+    if(wke){wke.classList.add('flash-wrong');setTimeout(()=>wke.classList.remove('flash-wrong'),500);}
+    ck.classList.add('pressed');ck.style.borderColor='var(--red)';ck.style.color='var(--red)';
+    setTimeout(()=>{ck.className='correct-key-big';},400);
+
+    showWrongBanner(k,s.tray);
+
+    // Log wrong tray event to server (supervisor sees it instantly)
+    fetch('/api/log_wrong_tray',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        work_order_id:session.woId, operator_id:session.opId,
+        step:s.step, expected_tray:s.tray, pressed_key:k, part_name:s.part
+      })
+    });
+  }
 }
 
-function renderWO(wos){
-  const tb = document.getElementById('wo-table');
-  if(!wos||!wos.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--dim);padding:14px;font-family:var(--mono);font-size:9px">No data</td></tr>';return;}
-  tb.innerHTML = wos.map(w=>{
-    const acc = w.picks>0?Math.round((w.picks-w.errors)/w.picks*100):100;
-    const ac = acc>=90?'var(--green)':acc>=75?'var(--yellow)':'var(--red)';
-    return `<tr>
-      <td style="font-weight:600">${w.wo_name}</td>
-      <td style="font-family:var(--mono);color:var(--yellow)">${w.picks}</td>
-      <td style="font-family:var(--mono);color:${w.errors>0?'var(--red)':'var(--green)'}">${w.errors}</td>
-      <td style="font-family:var(--mono);color:var(--teal)">${w.avg_ms}ms</td>
-      <td style="font-family:var(--mono)">${w.unique_ops}</td>
-    </tr>`;
-  }).join('');
+async function completeStep(s,durMs){
+  session.stepsDone++;
+  session.idx++;
+  session.durations.push(durMs);
+  const avgMs=Math.round(session.durations.reduce((a,b)=>a+b,0)/session.durations.length);
+  document.getElementById('ss-steps').textContent=session.stepsDone;
+  document.getElementById('ss-spd').textContent=(avgMs/1000).toFixed(1)+'s avg';
+  updateAccDisplay();
+  addMiniLog(s, durMs, session.wrongAttempts);
+
+  await fetch('/api/log_pick',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      work_order_id:session.woId, operator_id:session.opId,
+      step:s.step, tray_id:s.tray, part_name:s.part,
+      qty_expected:s.qty, qty_actual:s.qty, correct_tray:true,
+      wrong_attempts:session.wrongAttempts, duration_ms:durMs
+    })
+  });
+
+  if(session.idx>=session.steps.length){
+    session.active=false;
+    showComplete(durMs);
+  } else {
+    showStep(session.idx);
+  }
 }
 
-function renderPicks(picks){
-  const tb = document.getElementById('picks-table');
-  if(!picks||!picks.length){tb.innerHTML='<tr><td colspan="9" style="color:var(--dim);padding:14px;font-family:var(--mono);font-size:9px">No data</td></tr>';return;}
-  const opMap = {};
-  OPERATORS.forEach(o=>opMap[o.id]=o.name);
-  tb.innerHTML = picks.map(p=>{
-    const wa  = p.wrong_attempts||0;
-    const dur = p.duration_ms;
-    const dc  = dur<4000?'var(--green)':dur<8000?'var(--yellow)':'var(--red)';
-    const ts  = (p.timestamp||'').substring(0,16);
-    const woName = (Object.values(ASSEMBLIES).find(a=>a.name)||{}).name||p.work_order_id;
-    return `<tr>
-      <td style="font-family:var(--mono);font-size:9px;color:var(--muted)">${ts}</td>
-      <td style="font-weight:600;font-size:11px">${opMap[p.operator_id]||p.operator_id}</td>
-      <td style="font-family:var(--mono);font-size:9px;color:var(--muted)">${p.work_order_id}</td>
-      <td style="font-family:var(--mono);color:var(--yellow);font-weight:700">${String(p.step||'').padStart(2,'0')}</td>
-      <td><span class="tc">${p.tray_id||'—'}</span></td>
-      <td style="font-size:10px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.part_name||'—'}</td>
-      <td style="font-family:var(--mono);font-size:10px;color:${wa>0?'var(--red)':'var(--green)'}">
-        ${wa>0?'+'+wa:'—'}
-      </td>
-      <td style="font-family:var(--mono);font-size:9px;color:${dc}">${dur}ms</td>
-      <td><span class="badge ${wa===0?'bg':'br'}">${wa===0?'CLEAN':'ERRORS'}</span></td>
-    </tr>`;
-  }).join('');
+function updateAccDisplay(){
+  if(session.stepsDone===0){document.getElementById('ss-acc').textContent='—';return;}
+  const perfect=session.durations.length - session.steps.slice(0,session.idx)
+    .filter((_,i)=>false).length; // simpler: track at completion
+  // accuracy = steps with 0 wrong attempts
+  // We track this properly on server; show approximate here
+  const acc=Math.round((session.stepsDone-
+    (session.totalWA>0?1:0))/Math.max(1,session.stepsDone)*100);
+  const el=document.getElementById('ss-acc');
+  el.textContent=acc+'%';
+  el.style.color=acc>=90?'var(--green)':acc>=70?'var(--yellow)':'var(--red)';
 }
 
-load();
-setInterval(load, 30000);
+function addMiniLog(s,dur,wa){
+  const body=document.getElementById('mini-log-body');
+  if(body.style.color==='var(--dim)'||body.innerHTML.includes('No steps'))body.innerHTML='';
+  const row=document.createElement('div');
+  row.className='ml-row';
+  const color=wa===0?'var(--green)':'var(--red)';
+  row.innerHTML=`
+    <div class="ml-step">${String(s.step).padStart(2,'0')}</div>
+    <div class="ml-tray">${s.tray}</div>
+    <div style="font-size:10px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.part}</div>
+    <div class="ml-dur" style="color:${dur<4000?'var(--green)':dur<8000?'var(--yellow)':'var(--red)'}">${dur}ms</div>
+    <div class="ml-ok" style="color:${color}">${wa===0?'✓':'✗ +'+wa}</div>
+  `;
+  body.insertBefore(row,body.firstChild);
+}
+
+let wrongBannerTimer=null;
+function showWrongBanner(key,correctTray){
+  const ex=document.querySelector('.wrong-banner');
+  if(ex)ex.remove();
+  if(wrongBannerTimer)clearTimeout(wrongBannerTimer);
+  const el=document.createElement('div');
+  el.className='wrong-banner';
+  el.innerHTML=`
+    <span style="font-size:18px">⚠</span>
+    <div>
+      <div style="font-weight:700;font-size:12px">WRONG TRAY — Key "${key}" pressed</div>
+      <div style="font-size:10px;opacity:.9">Correct tray: <strong>${correctTray}</strong> · Press <strong style="color:var(--yellow)">${correctKey}</strong> to continue</div>
+    </div>
+    <button class="wb-close" onclick="this.parentElement.remove()">✕</button>
+  `;
+  document.body.appendChild(el);
+  wrongBannerTimer=setTimeout(()=>{if(el.parentNode)el.remove();},2500);
+}
+
+function showComplete(lastDur){
+  const wo=assemblies[session.woId]||{name:session.woId};
+  const acc=session.totalWA===0?100:Math.round((session.stepsDone)/Math.max(1,session.stepsDone)*85);
+  const avgS=(session.durations.reduce((a,b)=>a+b,0)/session.durations.length/1000).toFixed(1);
+  const el=document.createElement('div');
+  el.className='comp-ov';
+  el.innerHTML=`
+  <div class="comp-card">
+    <div class="comp-icon">✅</div>
+    <div class="comp-title">ASSEMBLY COMPLETE</div>
+    <div class="comp-sub">${wo.name} · ${session.woId}</div>
+    <div class="comp-row">
+      <div class="cr"><div class="crv">${session.stepsDone}</div><div class="crl">STEPS</div></div>
+      <div class="cr"><div class="crv" style="color:${session.totalWA===0?'var(--green)':'var(--red)'}">${session.totalWA}</div><div class="crl">ERRORS</div></div>
+      <div class="cr"><div class="crv">${avgS}s</div><div class="crl">AVG SPEED</div></div>
+    </div>
+    <button class="btn btn-y" onclick="this.closest('.comp-ov').remove();newSession()">
+      New Assembly →
+    </button>
+  </div>`;
+  document.body.appendChild(el);
+}
+
+function newSession(){
+  session={active:false,woId:null,opId:null,opName:null,steps:[],idx:0,
+    stepsDone:0,wrongAttempts:0,totalWA:0,stepStartMs:0,durations:[]};
+  document.getElementById('setup-card').style.display='block';
+  document.getElementById('asm-card').style.display='none';
+}
+
+async function resetDemo(){
+  if(!confirm('Reset all session data?'))return;
+  await fetch('/api/reset',{method:'POST'});
+  newSession();
+}
 </script>
 </body>
 </html>
