@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SynTrack — Admin · Database View</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Barlow:wght@400;600;700;800&family=Barlow+Condensed:wght@700;800&display=swap');
+:root{
+  --bg:#020d18;--bg2:#071828;--bg3:#0a2038;--card:#0d2540;
+  --border:#1a3a55;--yellow:#f5c400;--teal:#00d3aa;--blue:#499eff;
+  --green:#22c55e;--red:#ef4444;--orange:#f97316;
+  --white:#f0f4f8;--muted:#6b8aaa;--dim:#1a3a55;
+  --mono:'IBM Plex Mono',monospace;--sans:'Barlow',sans-serif;--cond:'Barlow Condensed',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:13px}
+body{background:var(--bg);color:var(--white);font-family:var(--sans);min-height:100vh}
+
+/* ── TOP BAR ── */
+.topbar{height:50px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  position:sticky;top:0;z-index:50}
+.logo{font-family:var(--cond);font-size:18px;font-weight:800;letter-spacing:2px;color:var(--yellow)}
+.logo span{color:var(--white);font-weight:300}
+.admin-tag{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);
+  border-radius:4px;padding:3px 10px;font-family:var(--mono);font-size:9px;
+  color:var(--red);font-weight:600;letter-spacing:1px}
+.nav-links{display:flex;gap:12px}
+.nav-links a{font-family:var(--mono);font-size:9px;color:var(--muted);
+  text-decoration:none;padding:3px 8px;border-radius:4px;border:1px solid var(--border)}
+.nav-links a:hover{color:var(--yellow);border-color:var(--yellow)}
+
+/* ── LAYOUT ── */
+.wrap{padding:16px 24px;display:grid;gap:14px;max-width:1200px;margin:0 auto}
+
+/* ── DB INFO BANNER ── */
+.db-banner{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.db-path{font-family:var(--mono);font-size:10px;color:var(--teal)}
+.db-badge{font-family:var(--mono);font-size:9px;background:rgba(34,197,94,.1);
+  border:1px solid rgba(34,197,94,.25);border-radius:4px;padding:3px 8px;color:var(--green)}
+.db-dates{font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px 14px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--kc,var(--border))}
+.kpi-lbl{font-family:var(--mono);font-size:8px;font-weight:600;color:var(--muted);
+  letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}
+.kpi-val{font-family:var(--cond);font-size:28px;font-weight:800;color:var(--kc,var(--white));line-height:1}
+.kpi-sub{font-size:9px;color:var(--muted);margin-top:3px}
+
+/* ── PANEL ── */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.ph{padding:10px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between}
+.ph-title{font-family:var(--mono);font-size:9px;font-weight:600;color:var(--muted);
+  letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.ph-dot{width:6px;height:6px;border-radius:50%;background:var(--ac,var(--yellow))}
+.pb{padding:14px;overflow-x:auto}
+
+/* ── OPERATOR CARDS ── */
+.op-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:14px}
+.op-card{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px}
+.op-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.op-name{font-weight:700;font-size:13px}
+.op-role{font-family:var(--mono);font-size:8px;color:var(--muted)}
+.acc-badge{font-family:var(--cond);font-size:18px;font-weight:800}
+.op-mets{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.met{background:var(--bg2);border-radius:4px;padding:6px;text-align:center}
+.mv{font-family:var(--cond);font-size:16px;font-weight:700}
+.ml{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:.8px;margin-top:1px}
+
+/* weekly trend bars */
+.trend-label{font-family:var(--mono);font-size:8px;color:var(--muted);margin-bottom:5px;letter-spacing:.8px}
+.trend-bars{display:flex;gap:4px;align-items:flex-end;height:36px}
+.tb{flex:1;border-radius:2px 2px 0 0;min-height:3px;position:relative;cursor:default}
+.tb .tip{position:absolute;bottom:105%;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--border);border-radius:3px;
+  padding:2px 6px;font-family:var(--mono);font-size:7px;white-space:nowrap;
+  opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
+.tb:hover .tip{opacity:1}
+
+/* ── TABLE ── */
+.dt{width:100%;border-collapse:collapse;font-size:11px}
+.dt th{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;
+  text-transform:uppercase;padding:6px 10px;text-align:left;
+  border-bottom:1px solid var(--border);white-space:nowrap}
+.dt td{padding:7px 10px;border-bottom:1px solid rgba(26,58,85,.4);vertical-align:middle}
+.dt tr:hover td{background:rgba(73,158,255,.04)}
+.badge{display:inline-block;border-radius:3px;padding:2px 6px;
+  font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.bg{background:rgba(34,197,94,.15);color:var(--green)}
+.br{background:rgba(239,68,68,.15);color:var(--red)}
+.by{background:rgba(245,196,0,.15);color:var(--yellow)}
+.tc{font-family:var(--mono);font-size:9px;font-weight:700;color:var(--teal);
+  background:rgba(0,211,170,.1);border-radius:3px;padding:1px 5px}
+
+/* ── DAILY CHART ── */
+.daily-chart{display:flex;gap:3px;align-items:flex-end;height:80px;padding:6px 0}
+.dc-bar{flex:1;border-radius:2px 2px 0 0;min-height:2px;cursor:pointer;position:relative;transition:opacity .2s}
+.dc-bar:hover{opacity:.7}
+.dc-bar .tip{position:absolute;bottom:105%;left:50%;transform:translateX(-50%);
+  background:var(--bg2);border:1px solid var(--border);border-radius:3px;
+  padding:2px 6px;font-family:var(--mono);font-size:7px;white-space:nowrap;
+  opacity:0;transition:opacity .15s;pointer-events:none;z-index:5}
+.dc-bar:hover .tip{opacity:1}
+
+/* ── TWO COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* ── REFRESH BUTTON ── */
+.ref-btn{background:transparent;border:1px solid var(--border);border-radius:4px;
+  color:var(--muted);font-family:var(--mono);font-size:9px;
+  padding:3px 10px;cursor:pointer;transition:all .2s}
+.ref-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">SYN<span>TRACK</span></div>
+    <div class="admin-tag">ADMIN · DATABASE VIEW</div>
+  </div>
+  <div class="nav-links">
+    <a href="/">Operator Portal</a>
+    <a href="/super">Supervisor Portal</a>
+    <a href="/api/db_info" target="_blank">Raw JSON</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- DB INFO BANNER -->
+  <div class="db-banner">
+    <div class="db-badge">● LIVE DATABASE</div>
+    <div class="db-path" id="db-path">Loading...</div>
+    <div class="db-dates" id="db-dates">—</div>
+    <button class="ref-btn" onclick="load()">↺ Refresh</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row">
+    <div class="kpi" style="--kc:var(--yellow)">
+      <div class="kpi-lbl">Total Picks</div>
+      <div class="kpi-val" id="k-picks">—</div>
+      <div class="kpi-sub">all time</div>
+    </div>
+    <div class="kpi" style="--kc:var(--green)">
+      <div class="kpi-lbl">Overall Accuracy</div>
+      <div class="kpi-val" id="k-acc">—</div>
+      <div class="kpi-sub">first-time correct</div>
+    </div>
+    <div class="kpi" style="--kc:var(--red)">
+      <div class="kpi-lbl">Wrong Attempts</div>
+      <div class="kpi-val" id="k-wrong">—</div>
+      <div class="kpi-sub">tray mismatches</div>
+    </div>
+    <div class="kpi" style="--kc:var(--teal)">
+      <div class="kpi-lbl">Avg Pick Time</div>
+      <div class="kpi-val" id="k-ms">—</div>
+      <div class="kpi-sub">ms per step</div>
+    </div>
+    <div class="kpi" style="--kc:var(--blue)">
+      <div class="kpi-lbl">Active Days</div>
+      <div class="kpi-val" id="k-days">—</div>
+      <div class="kpi-sub">sessions recorded</div>
+    </div>
+    <div class="kpi" style="--kc:var(--orange)">
+      <div class="kpi-lbl">Operators</div>
+      <div class="kpi-val">4</div>
+      <div class="kpi-sub">on record</div>
+    </div>
+  </div>
+
+  <!-- OPERATOR CARDS -->
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><div class="ph-dot" style="--ac:var(--blue)"></div>OPERATOR INTELLIGENCE — FULL HISTORY</div>
+      <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">all time · all sessions</span>
+    </div>
+    <div class="op-grid" id="op-grid">
+      <div style="color:var(--dim);font-family:var(--mono);font-size:9px;padding:14px">Loading...</div>
+    </div>
+  </div>
+
+  <!-- DAILY CHART + WO BREAKDOWN -->
+  <div class="two-col">
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title"><div class="ph-dot" style="--ac:var(--teal)"></div>DAILY PICK ACTIVITY</div>
+        <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">last 30 days</span>
+      </div>
+      <div style="padding:12px">
+        <div class="daily-chart" id="daily-chart"></div>
+        <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:6px">
+          Each bar = one day · height = pick count · hover for detail
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="ph">
+        <div class="ph-title"><div class="ph-dot" style="--ac:var(--yellow)"></div>WORK ORDER BREAKDOWN</div>
+      </div>
+      <div class="pb" style="padding:0">
+        <table class="dt">
+          <thead><tr><th>Assembly</th><th>Picks</th><th>Errors</th><th>Avg Speed</th><th>Operators</th></tr></thead>
+          <tbody id="wo-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT PICKS LOG -->
+  <div class="panel">
+    <div class="ph">
+      <div class="ph-title"><div class="ph-dot" style="--ac:var(--teal)"></div>RECENT PICK LOG — ALL TIME</div>
+      <span style="font-family:var(--mono);font-size:8px;color:var(--muted)">last 20 events across all sessions</span>
+    </div>
+    <div class="pb" style="padding:0;max-height:320px;overflow-y:auto">
+      <table class="dt">
+        <thead><tr><th>TIMESTAMP</th><th>OPERATOR</th><th>WO</th><th>STEP</th><th>TRAY</th><th>PART</th><th>WRONG ATT.</th><th>DURATION</th><th>STATUS</th></tr></thead>
+        <tbody id="picks-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const OPERATORS = {{ operators | tojson }};
+const ASSEMBLIES = {{ assemblies | tojson }};
+
+async function load(){
+  try{
+    const r = await fetch('/api/admin/stats');
+    const d = await r.json();
+    renderKPIs(d.totals);
+    renderDB(d.totals);
+    renderOperators(d.operators);
+    renderDaily(d.daily);
+    renderWO(d.work_orders);
+    renderPicks(d.recent_picks);
+  }catch(e){ console.error(e); }
+}
+
+function renderKPIs(t){
+  document.getElementById('k-picks').textContent = t.picks;
+  document.getElementById('k-acc').textContent   = t.picks>0 ? t.accuracy+'%' : '—';
+  document.getElementById('k-wrong').textContent = t.wrong_attempts;
+  document.getElementById('k-ms').textContent    = t.avg_ms || '—';
+  document.getElementById('k-days').textContent  = t.sessions;
+}
+
+function renderDB(t){
+  document.getElementById('db-path').textContent = 'DB: ' + t.db_path;
+  const from = t.data_from ? t.data_from.substring(0,10) : '—';
+  const to   = t.data_to   ? t.data_to.substring(0,10)   : '—';
+  document.getElementById('db-dates').textContent = `Data range: ${from} → ${to}`;
+}
+
+function renderOperators(ops){
+  const grid = document.getElementById('op-grid');
+  grid.innerHTML = ops.map(op => {
+    const ac = op.accuracy>=92?'var(--green)':op.accuracy>=78?'var(--yellow)':'var(--red)';
+    const weekly = op.weekly || [];
+    const maxAcc = 100;
+    const bars = weekly.slice().reverse().map(w => {
+      const h = Math.max(3, w.accuracy);
+      const c = w.accuracy>=90?'var(--green)':w.accuracy>=75?'var(--yellow)':'var(--red)';
+      return `<div class="tb" style="height:${h*0.36}px;background:${c}">
+        <div class="tip">Wk${w.week}: ${w.accuracy}% · ${w.picks} picks · ${w.avg_ms}ms</div>
+      </div>`;
+    }).join('');
+
+    return `
+    <div class="op-card">
+      <div class="op-top">
+        <div>
+          <div class="op-name">${op.name}</div>
+          <div class="op-role">${op.role} · ${op.shift} · ${op.id}</div>
+        </div>
+        <div>
+          <div class="acc-badge" style="color:${ac}">${op.accuracy}%</div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--muted);text-align:right">accuracy</div>
+        </div>
+      </div>
+      <div class="op-mets">
+        <div class="met"><div class="mv" style="color:var(--yellow)">${op.picks}</div><div class="ml">PICKS</div></div>
+        <div class="met"><div class="mv" style="color:${op.wrong_att>0?'var(--red)':'var(--green)'}">${op.wrong_att}</div><div class="ml">ERRORS</div></div>
+        <div class="met"><div class="mv" style="color:var(--teal)">${(op.avg_ms/1000).toFixed(1)}s</div><div class="ml">AVG SPEED</div></div>
+        <div class="met"><div class="mv" style="color:var(--blue)">${op.active_days}</div><div class="ml">DAYS</div></div>
+      </div>
+      ${bars ? `
+        <div class="trend-label">ACCURACY TREND — LAST 4 WEEKS</div>
+        <div class="trend-bars">${bars}</div>
+      ` : ''}
+      <div style="font-family:var(--mono);font-size:8px;color:var(--muted);margin-top:8px">
+        First pick: ${op.first_pick?op.first_pick.substring(0,10):'—'} &nbsp;·&nbsp;
+        Last pick:  ${op.last_pick ?op.last_pick.substring(0,10):'—'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderDaily(daily){
+  const chart = document.getElementById('daily-chart');
+  if(!daily||!daily.length){chart.innerHTML='<div style="color:var(--dim);font-size:9px;font-family:var(--mono)">No data</div>';return;}
+  const maxP = Math.max(...daily.map(d=>d.picks),1);
+  chart.innerHTML = [...daily].reverse().map(d=>{
+    const h = Math.max(2,(d.picks/maxP)*75);
+    const c = d.errors>0?'var(--yellow)':'var(--teal)';
+    return `<div class="dc-bar" style="height:${h}px;background:${c}">
+      <div class="tip">${d.d} · ${d.picks} picks · ${d.errors} err · ${d.ops} ops</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWO(wos){
+  const tb = document.getElementById('wo-table');
+  if(!wos||!wos.length){tb.innerHTML='<tr><td colspan="5" style="color:var(--dim);padding:14px;font-family:var(--mono);font-size:9px">No data</td></tr>';return;}
+  tb.innerHTML = wos.map(w=>{
+    const acc = w.picks>0?Math.round((w.picks-w.errors)/w.picks*100):100;
+    const ac = acc>=90?'var(--green)':acc>=75?'var(--yellow)':'var(--red)';
+    return `<tr>
+      <td style="font-weight:600">${w.wo_name}</td>
+      <td style="font-family:var(--mono);color:var(--yellow)">${w.picks}</td>
+      <td style="font-family:var(--mono);color:${w.errors>0?'var(--red)':'var(--green)'}">${w.errors}</td>
+      <td style="font-family:var(--mono);color:var(--teal)">${w.avg_ms}ms</td>
+      <td style="font-family:var(--mono)">${w.unique_ops}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPicks(picks){
+  const tb = document.getElementById('picks-table');
+  if(!picks||!picks.length){tb.innerHTML='<tr><td colspan="9" style="color:var(--dim);padding:14px;font-family:var(--mono);font-size:9px">No data</td></tr>';return;}
+  const opMap = {};
+  OPERATORS.forEach(o=>opMap[o.id]=o.name);
+  tb.innerHTML = picks.map(p=>{
+    const wa  = p.wrong_attempts||0;
+    const dur = p.duration_ms;
+    const dc  = dur<4000?'var(--green)':dur<8000?'var(--yellow)':'var(--red)';
+    const ts  = (p.timestamp||'').substring(0,16);
+    const woName = (Object.values(ASSEMBLIES).find(a=>a.name)||{}).name||p.work_order_id;
+    return `<tr>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--muted)">${ts}</td>
+      <td style="font-weight:600;font-size:11px">${opMap[p.operator_id]||p.operator_id}</td>
+      <td style="font-family:var(--mono);font-size:9px;color:var(--muted)">${p.work_order_id}</td>
+      <td style="font-family:var(--mono);color:var(--yellow);font-weight:700">${String(p.step||'').padStart(2,'0')}</td>
+      <td><span class="tc">${p.tray_id||'—'}</span></td>
+      <td style="font-size:10px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.part_name||'—'}</td>
+      <td style="font-family:var(--mono);font-size:10px;color:${wa>0?'var(--red)':'var(--green)'}">
+        ${wa>0?'+'+wa:'—'}
+      </td>
+      <td style="font-family:var(--mono);font-size:9px;color:${dc}">${dur}ms</td>
+      <td><span class="badge ${wa===0?'bg':'br'}">${wa===0?'CLEAN':'ERRORS'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>
