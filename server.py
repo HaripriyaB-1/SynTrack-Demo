@@ -647,6 +647,75 @@ def admin_stats():
                         "avg_ms":round(r["avg_ms"]),"unique_ops":r["unique_ops"]} for r in wo_stats],
         "recent_picks":[dict(r) for r in recent]
     })
+@app.route('/api/export/operator/<op_id>')
+def export_operator(op_id):
+    import csv, io
+    op = next((o for o in OPERATORS if o["id"] == op_id), None)
+    if not op:
+        return jsonify({"error": "operator not found"}), 404
+    with get_db() as db:
+        picks = db.execute("""
+            SELECT pe.timestamp, pe.work_order_id, wo.name as wo_name,
+                   pe.step, pe.tray_id, pe.part_name,
+                   pe.qty_expected, pe.qty_actual,
+                   pe.wrong_attempts, pe.duration_ms,
+                   CASE WHEN pe.wrong_attempts=0 THEN 'CLEAN' ELSE 'ERRORS' END as status
+            FROM pick_events pe
+            LEFT JOIN work_orders wo ON pe.work_order_id = wo.id
+            WHERE pe.operator_id = ?
+            ORDER BY pe.timestamp ASC
+        """, (op_id,)).fetchall()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Timestamp","Work Order ID","Assembly Name","Step",
+                     "Tray ID","Part Name","Qty Expected","Qty Actual",
+                     "Wrong Attempts","Duration (ms)","Status"])
+    for p in picks:
+        writer.writerow([p["timestamp"],p["work_order_id"],p["wo_name"] or "",
+                         p["step"],p["tray_id"],p["part_name"],
+                         p["qty_expected"],p["qty_actual"],
+                         p["wrong_attempts"],p["duration_ms"],p["status"]])
+    output.seek(0)
+    from flask import make_response
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = f"attachment; filename=SynTrack_{op['name'].replace(' ','_')}_{op_id}.csv"
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
+
+@app.route('/api/export/all')
+def export_all():
+    import csv, io
+    with get_db() as db:
+        picks = db.execute("""
+            SELECT pe.timestamp, pe.operator_id,
+                   op.name as op_name, op.role,
+                   pe.work_order_id, wo.name as wo_name,
+                   pe.step, pe.tray_id, pe.part_name,
+                   pe.qty_expected, pe.qty_actual,
+                   pe.wrong_attempts, pe.duration_ms,
+                   CASE WHEN pe.wrong_attempts=0 THEN 'CLEAN' ELSE 'ERRORS' END as status
+            FROM pick_events pe
+            LEFT JOIN work_orders wo ON pe.work_order_id = wo.id
+            LEFT JOIN operators op   ON pe.operator_id   = op.id
+            ORDER BY pe.timestamp ASC
+        """).fetchall()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Timestamp","Operator ID","Operator Name","Role",
+                     "Work Order ID","Assembly Name","Step","Tray ID","Part Name",
+                     "Qty Expected","Qty Actual","Wrong Attempts","Duration (ms)","Status"])
+    for p in picks:
+        writer.writerow([p["timestamp"],p["operator_id"],p["op_name"] or "",p["role"] or "",
+                         p["work_order_id"],p["wo_name"] or "",
+                         p["step"],p["tray_id"],p["part_name"],
+                         p["qty_expected"],p["qty_actual"],
+                         p["wrong_attempts"],p["duration_ms"],p["status"]])
+    output.seek(0)
+    from flask import make_response
+    resp = make_response(output.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename=SynTrack_Full_Export.csv"
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
 
 @app.after_request
 def cors(r):
